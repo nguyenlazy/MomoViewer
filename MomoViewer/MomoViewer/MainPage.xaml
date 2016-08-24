@@ -8,9 +8,12 @@
     d:DesignWidth="800"
     d:DesignHeight="800"
     mc:Ignorable="d">
-    
+
     <Page.Resources>
-      
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="Plum"/>
+        </Style>
+
     </Page.Resources>
 
     <SplitView x:Name="MySplitView" CompactPaneLength="50" OpenPaneLength="150" DisplayMode="CompactOverlay">
@@ -18,19 +21,20 @@
             <StackPanel Grid.Column="0" Background="Gray">
                 <Button x:Name="HamburgerButton" FontFamily="Segoe MDL2 Assets"
                     Width="50" Height="50" Background="Transparent" Click="HamburgerButton_Click">
-                   <StackPanel>
+                    <StackPanel>
                         <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE700;" FontSize="35"></TextBlock>
-                   </StackPanel>
+                    </StackPanel>
                 </Button>
                 <Button Command="{Binding OpenFileCommand}" VerticalAlignment="Top" Background="Transparent">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock  Text="&#xE8E5;" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Left" Width="35" Height="50" FontSize="35" VerticalAlignment="Center"></TextBlock>
+                    <StackPanel Orientation="Horizontal" Width="150">
+                        <TextBlock  Text="&#xE8E5;" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Left" Width="35" Height="50" FontSize="35" VerticalAlignment="Center">
+                        </TextBlock>
                         <TextBlock FontFamily="Segoe UI" Text="Zip" Margin="10,0,0,0" FontSize="20" VerticalAlignment="Center"></TextBlock>
                     </StackPanel>
                 </Button>
 
                 <Button Command="{Binding OpenFolderCommand}" VerticalAlignment="Top" Background="Transparent">
-                    <StackPanel Orientation="Horizontal">
+                    <StackPanel Orientation="Horizontal " Width="150">
                         <TextBlock  Text="&#xE8DA;" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Left" Width="35" Height="50" FontSize="35" VerticalAlignment="Center"></TextBlock>
                         <TextBlock FontFamily="Segoe UI" Text="Folder" Margin="10,0,0,0" FontSize="20" VerticalAlignment="Center"></TextBlock>
                     </StackPanel>
@@ -38,15 +42,17 @@
             </StackPanel>
         </SplitView.Pane>
         <SplitView.Content>
-            <ScrollViewer Grid.Column="1">
-                <ListView ItemsSource="{Binding Images}">
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <Image Source="{Binding}"></Image>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-            </ScrollViewer>
+            <StackPanel>
+                <ScrollViewer Grid.Column="1">
+                    <ItemsControl ItemsSource="{Binding Images}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Image Source="{Binding}"></Image>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </StackPanel>
         </SplitView.Content>
     </SplitView>
 </Page>

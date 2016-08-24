@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.UI.Xaml.Media.Imaging;
 
 namespace MomoViewer.Model
 {
@@ -32,6 +33,26 @@ namespace MomoViewer.Model
         {
             get { return pages; }
             set { pages = value; }
+        }
+
+        //public IEnumerable<string> Urls
+        //{
+        //    get
+        //    {
+        //        return from pageInfo in pages
+        //               where pageInfo.Path.Contains("jpeg") || pageInfo.Path.Contains(".png") || pageInfo.Path.Contains(".jpg") || pageInfo.Path.Contains(".gif")
+        //               select pageInfo.Path;
+
+        //    }
+        //}
+
+        public IEnumerable<BitmapImage> Images
+        {
+            get
+            {
+                return from pageInfo in pages
+                       select pageInfo.Image;
+            }
         }
     }
 }

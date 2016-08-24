@@ -14,16 +14,20 @@
             <ColumnDefinition Width="200"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <Button Content="Open Folder" Command="{Binding OpenFileCommand}" VerticalAlignment="Top"></Button>
-         <ScrollViewer Grid.Column="1">
+        <StackPanel Grid.Column="0">
+            <Button Content="Open Zip File" Command="{Binding OpenFileCommand}" VerticalAlignment="Top" Width="150"/>
+            <Button Content="Open Folder" Command="{Binding OpenFolderCommand}" Width="150"/>
+        </StackPanel>
+        
+        <ScrollViewer Grid.Column="1">
             <ListView ItemsSource="{Binding Images}">
-                   <ListView.ItemTemplate>
-                       <DataTemplate>
-                           <Image Source="{Binding}"></Image>
-                       </DataTemplate>
-                   </ListView.ItemTemplate>
-             </ListView>
-         </ScrollViewer>
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Image Source="{Binding}"></Image>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </ScrollViewer>
     </Grid>
 </Page>
 

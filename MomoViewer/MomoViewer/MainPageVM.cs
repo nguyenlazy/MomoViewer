@@ -14,9 +14,11 @@ namespace MomoViewer
 {
     public class MainPageVM : ViewModelBase
     {
-        public ICommand _openFileCommand;
+        private ICommand _openFileCommand;
+        private ICommand _openFolderCommand;
+
         ChapterVM _chapterVm = new ChapterVM();
-        ObservableCollection<string> images = new ObservableCollection<string>();
+        ObservableCollection<BitmapImage> images = new ObservableCollection<BitmapImage>();
 
         public ICommand OpenFileCommand
         {
@@ -30,28 +32,44 @@ namespace MomoViewer
             set { _chapterVm = value; }
         }
 
-        public ObservableCollection<string> Images
+        public ObservableCollection<BitmapImage> Images
         {
             get { return images; }
             set { images = value; }
         }
 
+        public ICommand OpenFolderCommand
+        {
+            get { return _openFolderCommand; }
+            set { _openFolderCommand = value; }
+        }
+
         public MainPageVM()
         {
             OpenFileCommand = new RelayCommand(ExecuteOpenFile);
+            OpenFolderCommand = new RelayCommand(ExecuteOpenFolder);
+        }
+
+        private async void ExecuteOpenFolder()
+        {
+            var page = await _chapterVm.LoadChapterFromFolder();
+            if (page != null)
+            {
+                Images = new ObservableCollection<BitmapImage>(page.Images);
+                RaisePropertyChanged("Images");
+            }
+
         }
 
         private async void ExecuteOpenFile()
         {
-            var page = await _chapterVm.LoadChapterInfo();
-            Images =  new ObservableCollection<string>();
-
-            foreach (var p in page.Pages)
+            var page = await _chapterVm.LoadChapterFromFile();
+            if (page != null)
             {
-                images.Add(p.Path);
+                Images = new ObservableCollection<BitmapImage>(page.Images);
+                RaisePropertyChanged("Images");
             }
 
-            RaisePropertyChanged("Images");
         }
     }
 }

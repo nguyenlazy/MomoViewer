@@ -12,6 +12,7 @@ using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Media.Imaging;
 using GalaSoft.MvvmLight;
 using MomoViewer.Model;
 
@@ -37,44 +38,88 @@ namespace MomoViewer.ViewModel
             }
         }
 
-        public async Task<ChapterInfo> LoadChapterInfo()
+        public async Task<ChapterInfo> LoadChapterFromFolder()
+        {
+            var picker = new FolderPicker();
+            Chapter.Pages = new List<PageInfo>();
+            picker.FileTypeFilter.Add("*");
+            var fd = await picker.PickSingleFolderAsync();
+            if (fd != null)
+            {
+                var fileList = await fd.GetFilesAsync();
+                int pageNumber = 0;
+                foreach (var storageFile in fileList)
+                {
+                    if (storageFile.IsOfType(StorageItemTypes.File))
+                    {
+                        string mediaType = storageFile.ContentType.Split('/')[0];
+                        if (mediaType == "image")
+                        {
+                            PageInfo page = new PageInfo();
+                            page.Path = storageFile.Path;
+                            page.Number = pageNumber++;
+                            using (var stream = await storageFile.OpenAsync(FileAccessMode.Read))
+                            {
+                                var bitmapImage = new BitmapImage();
+                                await bitmapImage.SetSourceAsync(stream);
+                                page.Image = bitmapImage;
+                            }
+                            Chapter.Pages.Add(page);
+                        }
+                    }
+                }
+            }
+            return Chapter;
+        }
+
+        public async Task<ChapterInfo> LoadChapterFromFile()
         {
             var picker = new FileOpenPicker();
+            Chapter.Pages = new List<PageInfo>();
             picker.FileTypeFilter.Add(".zip");
             var file = await picker.PickSingleFileAsync();
             if (file != null)
             {
                 StorageFolder d = await StorageFolder.GetFolderFromPathAsync(ApplicationData.Current.LocalCacheFolder.Path);
                 await UnZipFileAync(file, d);
-                StorageFolder fd = await StorageFolder.GetFolderFromPathAsync(Path.Combine(d.Path, file.DisplayName));
+                //StorageFolder fd = await StorageFolder.GetFolderFromPathAsync(Path.Combine(d.Path, file.DisplayName));
 
-                var fileList = await fd.GetFilesAsync();
-                int pageNumber = 0;
-                foreach (var storageFile in fileList)
-                {
-                    PageInfo page = new PageInfo();
-                    page.Path = storageFile.Path;
-                    page.Number = pageNumber++;
-                    using (var stream = await storageFile.OpenAsync(FileAccessMode.Read))
-                    {
-                        var bitmapImage = new Windows.UI.Xaml.Media.Imaging.BitmapImage();
-                        await bitmapImage.SetSourceAsync(stream);
-                        page.Image = bitmapImage;
-                    }
-                    Chapter.Pages.Add(page);
-                }
+                //var fileList = await fd.GetFilesAsync();
+                //int pageNumber = 0;
+                //foreach (var storageFile in fileList)
+                //{
+
+                //    if (storageFile.IsOfType(StorageItemTypes.File))
+                //    {
+                //        string mediaType = storageFile.ContentType.Split('/')[0];
+                //        if (mediaType == "image")
+                //        {
+                //            PageInfo page = new PageInfo();
+                //            page.Path = storageFile.Path;
+                //            page.Number = pageNumber++;
+                //            using (var stream = await storageFile.OpenAsync(FileAccessMode.Read))
+                //            {
+                //                var bitmapImage = new BitmapImage();
+                //                await bitmapImage.SetSourceAsync(stream);
+                //                page.Image = bitmapImage;
+                //            }
+                //            Chapter.Pages.Add(page);
+                //        }
+
+                //    }
+                //}
 
             }
             return Chapter;
         }
 
 
-        public static IAsyncAction UnZipFileAync(StorageFile zipFile, StorageFolder destinationFolder)
+        public IAsyncAction UnZipFileAync(StorageFile zipFile, StorageFolder destinationFolder)
         {
             return UnZipFileHelper(zipFile, destinationFolder).AsAsyncAction();
         }
 
-        private static async Task UnZipFileHelper(StorageFile zipFile, StorageFolder destinationFolder)
+        private async Task UnZipFileHelper(StorageFile zipFile, StorageFolder destinationFolder)
         {
             if (zipFile == null || destinationFolder == null ||
                 !Path.GetExtension(zipFile.FileType).Equals(".zip", StringComparison.CurrentCultureIgnoreCase)
@@ -84,19 +129,39 @@ namespace MomoViewer.ViewModel
             }
             Stream zipMemoryStream = await zipFile.OpenStreamForReadAsync();
             // Create zip archive to access compressed files in memory stream 
+
+            int pageNumber = 0;
             using (ZipArchive zipArchive = new ZipArchive(zipMemoryStream, ZipArchiveMode.Read))
             {
                 // Unzip compressed file iteratively. 
+
                 foreach (ZipArchiveEntry entry in zipArchive.Entries)
                 {
-                    await UnzipZipArchiveEntryAsync(entry, entry.FullName, destinationFolder);
+                    var memStream = new MemoryStream();
+                    await entry.Open().CopyToAsync(memStream);
+                    memStream.Position = 0;
+
+
+                    BitmapImage image = new BitmapImage();
+
+                    image.SetSource(memStream.AsRandomAccessStream());
+
+                    //await UnzipZipArchiveEntryAsync(entry, entry.FullName, destinationFolder);
+
+                    PageInfo info = new PageInfo
+                    {
+                        Image = image,
+                        Number = pageNumber++,
+                    };
+
+                    Chapter.Pages.Add(info);
                 }
             }
         }
 
 
 
-        private static bool IfPathContainDirectory(string entryPath)
+        private bool IfPathContainDirectory(string entryPath)
         {
             if (string.IsNullOrEmpty(entryPath))
             {
@@ -105,7 +170,7 @@ namespace MomoViewer.ViewModel
             return entryPath.Contains("/");
         }
 
-        private static async Task<bool> IfFolderExistsAsync(StorageFolder storageFolder, string subFolderName)
+        private async Task<bool> IfFolderExistsAsync(StorageFolder storageFolder, string subFolderName)
         {
             try
             {
@@ -121,9 +186,10 @@ namespace MomoViewer.ViewModel
             }
             return true;
         }
-        private static async Task UnzipZipArchiveEntryAsync(ZipArchiveEntry entry, string filePath,
+        private async Task<BitmapImage> UnzipZipArchiveEntryAsync(ZipArchiveEntry entry, string filePath,
             StorageFolder unzipFolder)
         {
+            var pageNumber = 0;
             if (IfPathContainDirectory(filePath))
             {
                 string subFolderName = Path.GetDirectoryName(filePath);
@@ -146,6 +212,8 @@ namespace MomoViewer.ViewModel
                     await UnzipZipArchiveEntryAsync(entry, newFilePath, subFolder);
                 }
 
+                return new BitmapImage();
+
             }
             else
             {
@@ -153,19 +221,27 @@ namespace MomoViewer.ViewModel
                 {
                     byte[] buffer = new byte[entry.Length];
                     entryStream.Read(buffer, 0, buffer.Length);
+
                     StorageFile uncompressedFile =
                         await unzipFolder.CreateFileAsync(entry.Name, CreationCollisionOption.ReplaceExisting);
-                    using (IRandomAccessStream uncompressedFileStream = await uncompressedFile.OpenAsync(FileAccessMode.ReadWrite))
+                    using (IRandomAccessStream uncompressedFileStream = await uncompressedFile.OpenAsync(FileAccessMode.Read))
                     {
-                        using (Stream outStream = uncompressedFileStream.AsStreamForWrite())
-                        {
-                            outStream.Write(buffer, 0, buffer.Length);
-                            outStream.Flush();
-                        }
+                        //using (Stream outStream = uncompressedFileStream.AsStreamForWrite())
+                        //{
+                        //    outStream.Write(buffer, 0, buffer.Length);
+                        //    outStream.Flush();
+                        //}
+                        BitmapImage image = new BitmapImage();
+                        await image.SetSourceAsync(uncompressedFileStream);
+                        return image;
+
+
+
                     }
                 }
             }
         }
+
 
     }
 }

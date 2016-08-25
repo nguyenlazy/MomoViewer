@@ -8,12 +8,15 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Media.Audio;
+using Windows.Networking.BackgroundTransfer;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
+using Windows.UI.ViewManagement;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media.Imaging;
 using GalaSoft.MvvmLight;
+using MomoViewer.Controls;
 using MomoViewer.Model;
 
 namespace MomoViewer.ViewModel
@@ -119,6 +122,31 @@ namespace MomoViewer.ViewModel
                     Chapter.Pages.Add(info);
                 }
             }
+        }
+
+        public async Task<ChapterInfo> LoadChaperFromLink(string uri)
+        {
+            try
+            {
+                Uri source = new Uri(uri);
+                string fileName = Path.GetFileName(source.LocalPath) + ".zip";
+                StorageFolder d = await StorageFolder.GetFolderFromPathAsync(ApplicationData.Current.LocalCacheFolder.Path);
+                StorageFile destinationFile = await d.CreateFileAsync(fileName, CreationCollisionOption.OpenIfExists);
+                BackgroundDownloader downloader = new BackgroundDownloader();
+                DownloadOperation download = downloader.CreateDownload(source, destinationFile);
+                await download.StartAsync();
+                await UnZipFileAync(destinationFile, d);
+
+            }
+            catch (Exception)
+            {
+
+                ErrorDialog dialog = new ErrorDialog();
+                await dialog.ShowAsync();
+
+            }
+            return Chapter;
+
         }
     }
 }

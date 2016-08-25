@@ -5,9 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media.Imaging;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
+using MomoViewer.Controls;
 using MomoViewer.ViewModel;
 
 namespace MomoViewer
@@ -16,6 +18,7 @@ namespace MomoViewer
     {
         private ICommand _openFileCommand;
         private ICommand _openFolderCommand;
+        private ICommand _openLinkCommand;
 
         ChapterVM _chapterVm = new ChapterVM();
         ObservableCollection<BitmapImage> images = new ObservableCollection<BitmapImage>();
@@ -44,10 +47,41 @@ namespace MomoViewer
             set { _openFolderCommand = value; }
         }
 
+        public ICommand OpenLinkCommand
+        {
+            get { return _openLinkCommand; }
+            set { _openLinkCommand = value; }
+        }
+
         public MainPageVM()
         {
             OpenFileCommand = new RelayCommand(ExecuteOpenFile);
             OpenFolderCommand = new RelayCommand(ExecuteOpenFolder);
+            OpenLinkCommand = new RelayCommand(ExecuteOpenLinkCommand);
+        }
+
+        private async void ExecuteOpenLinkCommand()
+        {
+            Flyout flyout = new Flyout();
+
+            DownloadDialog dialog = new DownloadDialog();
+            var res = await dialog.ShowAsync();
+            switch (res)
+            {
+                case ContentDialogResult.Primary:
+                    var page = await _chapterVm.LoadChaperFromLink(dialog.Link);
+                    if (page != null)
+                    {
+                        Images = new ObservableCollection<BitmapImage>(page.Images);
+                        RaisePropertyChanged("Images");
+                    }
+                    break;
+
+
+            }
+   
+
+
         }
 
         private async void ExecuteOpenFolder()

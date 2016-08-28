@@ -5,6 +5,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Media.Audio;
@@ -12,6 +13,7 @@ using Windows.Networking.BackgroundTransfer;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
+using Windows.UI.Popups;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media.Imaging;
@@ -23,9 +25,17 @@ namespace MomoViewer.ViewModel
 {
     public class ChapterVM : ViewModelBase
     {
+
+        private DownloadOperation _downloadOperation;
+        private BackgroundDownloader _backgroundDownloader;
+        private CancellationTokenSource _cancellationTokenSource;
         public ChapterVM()
         {
             _chapter = new ChapterInfo();
+            _backgroundDownloader = new BackgroundDownloader();
+
+
+
         }
         private ChapterInfo _chapter;
 
@@ -57,7 +67,6 @@ namespace MomoViewer.ViewModel
                         if (mediaType == "image")
                         {
                             PageInfo page = new PageInfo();
-                            page.Path = storageFile.Path;
                             page.Number = pageNumber++;
                             using (var stream = await storageFile.OpenAsync(FileAccessMode.Read))
                             {
@@ -124,29 +133,113 @@ namespace MomoViewer.ViewModel
             }
         }
 
-        public async Task<ChapterInfo> LoadChaperFromLink(string uri)
+        private DownloadProgress dialog;
+        public async Task<ChapterInfo> LoadChapterFromLink(string uri)
         {
             try
             {
+
+                dialog = new DownloadProgress();
+
+                dialog.ShowAsync();
+
+
                 Uri source = new Uri(uri);
                 string fileName = Path.GetFileName(source.LocalPath) + ".zip";
                 StorageFolder d = await StorageFolder.GetFolderFromPathAsync(ApplicationData.Current.LocalCacheFolder.Path);
-                StorageFile destinationFile = await d.CreateFileAsync(fileName, CreationCollisionOption.OpenIfExists);
-                BackgroundDownloader downloader = new BackgroundDownloader();
-                DownloadOperation download = downloader.CreateDownload(source, destinationFile);
-                await download.StartAsync();
-                await UnZipFileAync(destinationFile, d);
+                StorageFile destinationFile = await d.CreateFileAsync(fileName, CreationCollisionOption.ReplaceExisting);
+
+                _downloadOperation = _backgroundDownloader.CreateDownload(source, destinationFile);
+                Progress<DownloadOperation> progress = new Progress<DownloadOperation>(progressChanged);
+                _downloadOperation.StartAsync();
+                dialog.PrimaryButtonClick += Dialog_PrimaryButtonClick;
+                _cancellationTokenSource = new CancellationTokenSource();
+                try
+                {
+                    await _downloadOperation.AttachAsync().AsTask(_cancellationTokenSource.Token, progress);
+                    await UnZipFileAync(destinationFile, d);
+                    return Chapter;
+
+                }
+                catch (TaskCanceledException)
+                {
+
+                    _downloadOperation.Pause();
+                    dialog.PrimaryButtonText = "Resume";
+                    await dialog.ShowAsync();
+                }
 
             }
-            catch (Exception)
+            catch (Exception e)
             {
-
-                ErrorDialog dialog = new ErrorDialog();
+                MessageDialog dialog = new MessageDialog(e.Message, "Error");
                 await dialog.ShowAsync();
 
             }
+
             return Chapter;
 
+        }
+
+        private void Dialog_PrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+        {
+            if (dialog.PrimaryButtonText == "Pause")
+            {
+                _cancellationTokenSource.Cancel();
+
+            }
+            else if (dialog.PrimaryButtonText == "Resume")
+            {
+                _downloadOperation.Resume();
+            }
+            else
+            {
+                sender.Hide();
+            }
+        }
+
+        private void progressChanged(DownloadOperation dowloadOperation)
+        {
+
+            var byteRecieved = dowloadOperation.Progress.BytesReceived;
+            var byteTotal = dowloadOperation.Progress.TotalBytesToReceive;
+            dialog.Percent = (int)(100 * byteRecieved / byteTotal);
+            dialog.PercentString = string.Format("{0}%", dialog.Percent);
+            dialog.PrimaryButtonText = "Close";
+
+            switch (_downloadOperation.Progress.Status)
+            {
+                case BackgroundTransferStatus.Idle:
+                    break;
+                case BackgroundTransferStatus.Running:
+                    dialog.PrimaryButtonText = "Pause";
+                    break;
+                case BackgroundTransferStatus.PausedByApplication:
+                case BackgroundTransferStatus.PausedCostedNetwork:
+                    dialog.PrimaryButtonText = "Resume";
+                    break;
+                case BackgroundTransferStatus.PausedNoNetwork:
+                    dialog.PercentString = "Network Error";
+                    break;
+                case BackgroundTransferStatus.Completed:
+                    dialog.PercentString = "Completed";
+                    break;
+                case BackgroundTransferStatus.Canceled:
+                    dialog.PercentString = "Canceled";
+                    break;
+                case BackgroundTransferStatus.Error:
+                    break;
+                case BackgroundTransferStatus.PausedSystemPolicy:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            if (dialog.Percent >= 100)
+            {
+                dialog.PercentString = "Download Completed";
+                dialog.Hide();
+            }
         }
     }
 }

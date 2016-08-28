@@ -4,20 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.UI.Xaml.Media.Imaging;
+using MomoViewer.Repository.Enums;
 
 namespace MomoViewer.Model
 {
     public class PageInfo
     {
-        private string _path;
         private int _number;
         private BitmapImage _image;
-
-        public string Path
-        {
-            get { return _path; }
-            set { _path = value; }
-        }
 
         public int Number
         {

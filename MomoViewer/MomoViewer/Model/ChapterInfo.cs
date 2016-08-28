@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.UI.Xaml.Media.Imaging;
+using MomoViewer.Repository.Enums;
 
 namespace MomoViewer.Model
 {
@@ -11,7 +12,10 @@ namespace MomoViewer.Model
     {
         private string _name;
         private int _number;
+        private string _mangaPath;
         private List<PageInfo> pages;
+        private MangaType _readType;
+
 
         public ChapterInfo()
         {
@@ -35,16 +39,6 @@ namespace MomoViewer.Model
             set { pages = value; }
         }
 
-        //public IEnumerable<string> Urls
-        //{
-        //    get
-        //    {
-        //        return from pageInfo in pages
-        //               where pageInfo.Path.Contains("jpeg") || pageInfo.Path.Contains(".png") || pageInfo.Path.Contains(".jpg") || pageInfo.Path.Contains(".gif")
-        //               select pageInfo.Path;
-
-        //    }
-        //}
 
         public IEnumerable<BitmapImage> Images
         {
@@ -53,6 +47,18 @@ namespace MomoViewer.Model
                 return from pageInfo in pages
                        select pageInfo.Image;
             }
+        }
+
+        public MangaType ReadType
+        {
+            get { return _readType; }
+            set { _readType = value; }
+        }
+
+        public string MangaPath
+        {
+            get { return _mangaPath; }
+            set { _mangaPath = value; }
         }
     }
 }

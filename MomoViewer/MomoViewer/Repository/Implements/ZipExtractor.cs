@@ -26,7 +26,6 @@ namespace MomoViewer.Repository.Implements
             List<BitmapImage> _images = new List<BitmapImage>();
 
             StorageFile zipFile = await StorageFile.GetFileFromPathAsync(uri);
-            StorageFolder destinationFolder = ApplicationData.Current.LocalCacheFolder;
             Stream zipStream = await zipFile.OpenStreamForReadAsync();
             using (ZipArchive zipArchive = new ZipArchive(zipStream, ZipArchiveMode.Read))
             {
@@ -37,7 +36,7 @@ namespace MomoViewer.Repository.Implements
                         await entry.Open().CopyToAsync(memStream);
                         memStream.Position = 0;
                         BitmapImage image = new BitmapImage();
-                        await image.SetSourceAsync(memStream.AsRandomAccessStream());
+                        image.SetSource(memStream.AsRandomAccessStream());
                         _images.Add(image);
                     }
                 }

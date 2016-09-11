@@ -3,7 +3,7 @@ using Windows.Storage;
 
 namespace MomoViewer.Repository.Interfaces
 {
-    interface IDownloader
+    public interface IDownloader
     {
         Task<StorageFile> Download(string uri);
     }

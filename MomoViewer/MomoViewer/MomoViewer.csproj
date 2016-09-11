@@ -121,11 +121,14 @@
     <Compile Include="Repository\Interfaces\IDownloader.cs" />
     <Compile Include="Repository\Interfaces\IExtractor.cs" />
     <Compile Include="Repository\Interfaces\IReader.cs" />
-    <Compile Include="Repository\ModuleManager\ExtractorModule.cs" />
     <Compile Include="ViewModel\ChapterVM.cs" />
+    <Compile Include="View\ManagementView.xaml.cs">
+      <DependentUpon>ManagementView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\ReadingView.xaml.cs">
       <DependentUpon>ReadingView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="View\ViewManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">
@@ -163,6 +166,10 @@
     <Page Include="MainPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="View\ManagementView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="View\ReadingView.xaml">
       <SubType>Designer</SubType>

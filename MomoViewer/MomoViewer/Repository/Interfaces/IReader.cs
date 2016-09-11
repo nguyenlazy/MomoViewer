@@ -7,7 +7,7 @@ using MomoViewer.Model;
 
 namespace MomoViewer.Repository.Interfaces
 {
-    interface IReader
+    public interface IReader
     {
         Task<ChapterInfo> Read(LinkInfo Uri);
     }

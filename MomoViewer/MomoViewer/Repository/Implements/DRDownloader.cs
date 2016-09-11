@@ -22,19 +22,14 @@ namespace MomoViewer.Repository.Implements
 
         public async Task<StorageFile> Download(string uri)
         {
-
-
             Uri source = new Uri(uri);
             string fileName = Path.GetFileName(source.LocalPath);
             StorageFolder d = await StorageFolder.GetFolderFromPathAsync(ApplicationData.Current.LocalCacheFolder.Path);
-
             StorageFile file = await d.CreateFileAsync(fileName, CreationCollisionOption.ReplaceExisting);
             _progress = new DownloadProgress();
             _progress.ShowAsync();
             _backgroundDownloader = new BackgroundDownloader();
-
             Progress<DownloadOperation> progress = new Progress<DownloadOperation>(progressChanged);
-
             _downloadOperation = _backgroundDownloader.CreateDownload(source, file);
             _downloadOperation.StartAsync();
             await _downloadOperation.AttachAsync().AsTask(_cancellationTokenSourceken.Token, progress);

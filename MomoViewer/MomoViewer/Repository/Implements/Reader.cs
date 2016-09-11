@@ -4,14 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.UI.Xaml.Media.Imaging;
+using Microsoft.Practices.Unity;
 using MomoViewer.Model;
 using MomoViewer.Repository.Enums;
 using MomoViewer.Repository.Interfaces;
-using MomoViewer.Repository.ModuleManager;
 
 namespace MomoViewer.Repository.Implements
 {
-    public abstract class Reader : IReader
+    public class Reader : IReader
     {
         private IExtractor _extractor;
         private IDownloader _downloader;
@@ -21,14 +21,15 @@ namespace MomoViewer.Repository.Implements
             switch (Uri.Type)
             {
                 case LinkType.OfflineZip:
-                    _extractor = ExtractorModule.Module[MangaType.Zip];
+                    _extractor = MainPageVM.DiContainer.Resolve<IExtractor>("zipExtractor");
+                    //   _extractor = DIContainer.GetModule<ZipExtractor>();
                     break;
                 case LinkType.OfflineFolder:
-                    _extractor = ExtractorModule.Module[MangaType.Folder];
+                    _extractor = MainPageVM.DiContainer.Resolve<IExtractor>("folderExtractor");
                     break;
                 case LinkType.Online:
-                    _extractor = ExtractorModule.Module[MangaType.Zip];
-                    _downloader = new DRDownloader();
+                    _extractor = MainPageVM.DiContainer.Resolve<IExtractor>("zipExtractor");
+                    _downloader = MainPageVM.DiContainer.Resolve<IDownloader>();
                     var file = await _downloader.Download(Uri.Path);
                     _info.Pages = CreatePageInfos(await _extractor.Extract(file.Path));
                     return _info;
@@ -43,8 +44,13 @@ namespace MomoViewer.Repository.Implements
         }
 
 
+        public Reader(IDownloader downloader)
+        {
+            _downloader = downloader;
+        }
 
-        public List<PageInfo> CreatePageInfos(List<BitmapImage> images)
+
+        private List<PageInfo> CreatePageInfos(List<BitmapImage> images)
         {
             List<PageInfo> infos = new List<PageInfo>();
             int pageNum = 0;
@@ -53,6 +59,8 @@ namespace MomoViewer.Repository.Implements
                 PageInfo pageInfo = new PageInfo();
                 pageInfo.Image = bitmapImage;
                 pageInfo.Number = pageNum++;
+
+                infos.Add(pageInfo);
             }
             return infos;
         }

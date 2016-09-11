@@ -9,12 +9,7 @@
     d:DesignHeight="800"
     mc:Ignorable="d">
 
-    <Page.Resources>
-    </Page.Resources>
-    <Page.DataContext>
-        <local:MainPageVM ></local:MainPageVM>
-    </Page.DataContext>
-    <SplitView x:Name="MySplitView" CompactPaneLength="50" OpenPaneLength="250" DisplayMode="CompactOverlay"  >
+    <SplitView x:Name="MySplitView" CompactPaneLength="50" OpenPaneLength="250" DisplayMode="CompactOverlay">
         <SplitView.Pane>
             <StackPanel Grid.Column="0" Background="Black">
                 <!--Expadnd button-->
@@ -46,10 +41,6 @@
                         <TextBlock FontFamily="Segoe UI" Text="Link" Margin="10,0,0,0" FontSize="20" VerticalAlignment="Center"></TextBlock>
                     </StackPanel>
                 </Button>
-
-
-
-
                 <Button VerticalAlignment="Top" Background="Transparent">
                     <StackPanel Orientation="Horizontal " Width="150">
                         <TextBlock  Text="&#xE8FD;" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Left" Width="35" Height="35" FontSize="25" VerticalAlignment="Center"></TextBlock>
@@ -57,12 +48,15 @@
                     </StackPanel>
                     <Button.Flyout>
                         <Flyout>
+                            <Flyout.Placement>Right</Flyout.Placement>
                             <FlyoutPresenter>
-                                <ListView>
+                                <ListView ItemsSource="{Binding RecentList}" IsItemClickEnabled="True" ItemClick="ListViewBase_OnItemClick">
                                     <ListViewHeaderItem Content="Recent Reading"></ListViewHeaderItem>
-                                    <ListViewItem Content="Vanilla"></ListViewItem>
-                                    <ListViewItem Content="NTR"></ListViewItem>
-                                    <ListViewItem Content="GB"></ListViewItem>
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate >
+                                            <TextBlock Text="{Binding Path=Path}"></TextBlock>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
                                 </ListView>
                             </FlyoutPresenter>
                         </Flyout>

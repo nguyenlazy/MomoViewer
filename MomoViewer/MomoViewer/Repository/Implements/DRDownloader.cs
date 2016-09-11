@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,17 +24,29 @@ namespace MomoViewer.Repository.Implements
         public async Task<StorageFile> Download(string uri)
         {
             Uri source = new Uri(uri);
-            string fileName = Path.GetFileName(source.LocalPath);
+            HttpClient client = new HttpClient();
+            var result = await client.GetAsync(source, HttpCompletionOption.ResponseHeadersRead);
+            var content = result.Content;
+            var header = content.Headers;
+            string fileName = header.ContentDisposition.FileName;
             StorageFolder d = await StorageFolder.GetFolderFromPathAsync(ApplicationData.Current.LocalCacheFolder.Path);
-            StorageFile file = await d.CreateFileAsync(fileName, CreationCollisionOption.ReplaceExisting);
-            _progress = new DownloadProgress();
-            _progress.ShowAsync();
-            _backgroundDownloader = new BackgroundDownloader();
-            Progress<DownloadOperation> progress = new Progress<DownloadOperation>(progressChanged);
-            _downloadOperation = _backgroundDownloader.CreateDownload(source, file);
-            _downloadOperation.StartAsync();
-            await _downloadOperation.AttachAsync().AsTask(_cancellationTokenSourceken.Token, progress);
+            StorageFile file = await d.CreateFileAsync(fileName, CreationCollisionOption.OpenIfExists);
+            var size = await file.GetBasicPropertiesAsync();
+            if (size.Size == 0)
+            {
+                _progress = new DownloadProgress();
+                _progress.ShowAsync();
+                _backgroundDownloader = new BackgroundDownloader();
+                Progress<DownloadOperation> progress = new Progress<DownloadOperation>(progressChanged);
+                _downloadOperation = _backgroundDownloader.CreateDownload(source, file);
+                _downloadOperation.StartAsync();
+                await _downloadOperation.AttachAsync().AsTask(_cancellationTokenSourceken.Token, progress);
+            }
             return file;
+
+
+
+
         }
 
         private void progressChanged(DownloadOperation dowloadOperation)

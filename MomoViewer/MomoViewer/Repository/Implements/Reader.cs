@@ -21,15 +21,15 @@ namespace MomoViewer.Repository.Implements
             switch (Uri.Type)
             {
                 case LinkType.OfflineZip:
-                    _extractor = MainPageVM.DiContainer.Resolve<IExtractor>("zipExtractor");
+                    _extractor = App.DiContainer.Resolve<IExtractor>("zipExtractor");
                     //   _extractor = DIContainer.GetModule<ZipExtractor>();
                     break;
                 case LinkType.OfflineFolder:
-                    _extractor = MainPageVM.DiContainer.Resolve<IExtractor>("folderExtractor");
+                    _extractor = App.DiContainer.Resolve<IExtractor>("folderExtractor");
                     break;
                 case LinkType.Online:
-                    _extractor = MainPageVM.DiContainer.Resolve<IExtractor>("zipExtractor");
-                    _downloader = MainPageVM.DiContainer.Resolve<IDownloader>();
+                    _extractor = App.DiContainer.Resolve<IExtractor>("zipExtractor");
+                    _downloader = App.DiContainer.Resolve<IDownloader>();
                     var file = await _downloader.Download(Uri.Path);
                     _info.Pages = CreatePageInfos(await _extractor.Extract(file.Path));
                     return _info;

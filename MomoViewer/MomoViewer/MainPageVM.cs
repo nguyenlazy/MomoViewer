@@ -17,6 +17,7 @@ using Microsoft.Practices.Unity;
 using MomoViewer.Controls;
 using MomoViewer.Model;
 using MomoViewer.Repository;
+using MomoViewer.Repository.DataAcess;
 using MomoViewer.Repository.Implements;
 using MomoViewer.Repository.Interfaces;
 using MomoViewer.View;
@@ -34,7 +35,8 @@ namespace MomoViewer
         private ChapterVM _chapterVm;
         private int _totalPage;
         private FrameworkElement _view;
-        public static IUnityContainer DiContainer = new UnityContainer();
+        private IDataAccess _dataAccess;
+        private ObservableCollection<LinkInfo> _recentList;
 
         ObservableCollection<BitmapImage> images = new ObservableCollection<BitmapImage>();
 
@@ -113,24 +115,30 @@ namespace MomoViewer
             }
         }
 
-        public MainPageVM()
+        public ObservableCollection<LinkInfo> RecentList
+        {
+            get { return _recentList; }
+            set { _recentList = value; }
+        }
+
+        public MainPageVM(IDataAccess dataAccess, ChapterVM chapterVm)
         {
             OpenFileCommand = new RelayCommand(ExecuteOpenFile);
             OpenFolderCommand = new RelayCommand(ExecuteOpenFolder);
             OpenLinkCommand = new RelayCommand(ExecuteOpenLinkCommand);
             OpenRecentCommand = new RelayCommand(ExecuteOpenRecentCommand);
-            DiContainer.RegisterType<IExtractor, ZipExtractor>("zipExtractor");
-            DiContainer.RegisterType<IExtractor, FolderExtractor>("folderExtractor");
-            DiContainer.RegisterType<IReader, Reader>();
-            DiContainer.RegisterType<IDownloader, DRDownloader>();
-            DiContainer.RegisterType<ChapterVM, ChapterVM>();
+
+
+
             View = new ReadingView();
-            //DIContainer.SetModule<ZipExtractor, ZipExtractor>();
-            //DIContainer.SetModule<FolderExtractor, FolderExtractor>();
-            //DIContainer.SetModule<IDownloader, DRDownloader>();
-            //DIContainer.SetModule<IReader, Reader>();
-            _info = new LinkInfo();
-            _chapterVm = DiContainer.Resolve<ChapterVM>();
+
+            _chapterVm = chapterVm;
+            _dataAccess = dataAccess;
+
+            using (var db = new DatabaseContext())
+            {
+                RecentList = new ObservableCollection<LinkInfo>(db.Links.ToList());
+            }
 
         }
 
@@ -142,6 +150,7 @@ namespace MomoViewer
 
         private async void ExecuteOpenLinkCommand()
         {
+            _info = new LinkInfo();
             DownloadDialog dialog = new DownloadDialog();
             var res = await dialog.ShowAsync();
             switch (res)
@@ -151,8 +160,7 @@ namespace MomoViewer
                 case ContentDialogResult.Primary:
                     _info.Path = dialog.Link;
                     _info.Type = LinkType.Online;
-                    Images = new ObservableCollection<BitmapImage>(await ChapterVm.GetBitmapImages(_info));
-                    View = ViewManager.GetView(ViewType.ReadingView, this);
+                    ReadLinkInfo(_info);
                     break;
                 case ContentDialogResult.Secondary:
                     break;
@@ -160,7 +168,16 @@ namespace MomoViewer
                     throw new ArgumentOutOfRangeException();
             }
 
+            _dataAccess.AddRecent(_info);
+            RecentList.Add(_info);
 
+
+        }
+
+        public async void ReadLinkInfo(LinkInfo info)
+        {
+            Images = new ObservableCollection<BitmapImage>(await ChapterVm.GetBitmapImages(info));
+            View = ViewManager.GetView(ViewType.ReadingView, this);
         }
 
         private async void ExecuteOpenFolder()
@@ -169,9 +186,6 @@ namespace MomoViewer
             picker.FileTypeFilter.Add(".zip");
             var folder = await picker.PickSingleFolderAsync();
             ReadLocation(folder);
-
-
-
         }
 
         private async void ExecuteOpenFile()
@@ -180,12 +194,15 @@ namespace MomoViewer
             picker.FileTypeFilter.Add(".zip");
             var file = await picker.PickSingleFileAsync();
             ReadLocation(file);
-
-
         }
 
         private async void ReadLocation(IStorageItem item)
         {
+            if (item == null)
+            {
+                return;
+            }
+            _info = new LinkInfo();
             _info.Path = item.Path;
             StorageApplicationPermissions.FutureAccessList.Add(item);
             if (item.IsOfType(StorageItemTypes.File))
@@ -196,9 +213,9 @@ namespace MomoViewer
             {
                 _info.Type = LinkType.OfflineFolder;
             }
-            Images = new ObservableCollection<BitmapImage>(await ChapterVm.GetBitmapImages(_info));
-            View = ViewManager.GetView(ViewType.ReadingView, this);
-
+            ReadLinkInfo(_info);
+            _dataAccess.AddRecent(_info);
+            RecentList.Add(_info);
         }
     }
 }

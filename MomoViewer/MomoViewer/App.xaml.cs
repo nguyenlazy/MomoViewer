@@ -14,6 +14,12 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Practices.Unity;
+using MomoViewer.Repository.DataAcess;
+using MomoViewer.Repository.Implements;
+using MomoViewer.Repository.Interfaces;
+using MomoViewer.ViewModel;
 
 namespace MomoViewer
 {
@@ -26,10 +32,24 @@ namespace MomoViewer
         /// Initializes the singleton application object.  This is the first line of authored code
         /// executed, and as such is the logical equivalent of main() or WinMain().
         /// </summary>
+        /// 
+        public static IUnityContainer DiContainer = new UnityContainer();
+
         public App()
         {
             this.InitializeComponent();
             this.Suspending += OnSuspending;
+            DiContainer.RegisterType<IExtractor, ZipExtractor>("zipExtractor");
+            DiContainer.RegisterType<IExtractor, FolderExtractor>("folderExtractor");
+            DiContainer.RegisterType<IReader, Reader>();
+            DiContainer.RegisterType<IDownloader, DRDownloader>();
+            DiContainer.RegisterType<ChapterVM, ChapterVM>();
+            DiContainer.RegisterType<IDataAccess, DataAccessLayer>();
+            DiContainer.RegisterType<MainPageVM, MainPageVM>();
+            using (var db = new DatabaseContext())
+            {
+                db.Database.Migrate();
+            }
         }
 
         /// <summary>

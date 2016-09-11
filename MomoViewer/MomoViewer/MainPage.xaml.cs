@@ -12,6 +12,8 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using Microsoft.Practices.Unity;
+using MomoViewer.Model;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -25,12 +27,19 @@ namespace MomoViewer
         public MainPage()
         {
             this.InitializeComponent();
-            this.DataContext = new MainPageVM();
+            this.DataContext = App.DiContainer.Resolve<MainPageVM>();
         }
 
         private void HamburgerButton_Click(object sender, RoutedEventArgs e)
         {
             MySplitView.IsPaneOpen = !MySplitView.IsPaneOpen;
+        }
+
+        private void ListViewBase_OnItemClick(object sender, ItemClickEventArgs e)
+        {
+            var link = e.ClickedItem as LinkInfo;
+            MainPageVM vm = DataContext as MainPageVM;
+            vm.ReadLinkInfo(link);
         }
     }
 }

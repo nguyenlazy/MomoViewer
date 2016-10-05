@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,7 +15,6 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Practices.Unity;
 using MomoViewer.Repository.DataAcess;
 using MomoViewer.Repository.Implements;
@@ -48,7 +48,17 @@ namespace MomoViewer
             DiContainer.RegisterType<MainPageVM, MainPageVM>();
             using (var db = new DatabaseContext())
             {
-                db.Database.Migrate();
+                try
+                {
+                    db.Database.Migrate();
+                }
+                catch (Exception)
+                {
+
+                    db.Database.EnsureDeleted();
+                    db.Database.Migrate();
+                }
+        
             }
         }
 

@@ -8,18 +8,20 @@ using MomoViewer.Repository.DataAcess;
 namespace MomoViewer.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20160911152710_MyFirstMigration")]
-    partial class MyFirstMigration
+    [Migration("20161005164107_SQLiteMigration")]
+    partial class SQLiteMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
-                .HasAnnotation("ProductVersion", "1.0.0-rtm-21431");
+                .HasAnnotation("ProductVersion", "1.0.1");
 
             modelBuilder.Entity("MomoViewer.Model.LinkInfo", b =>
                 {
                     b.Property<int>("LinkInfoId")
                         .ValueGeneratedOnAdd();
+
+                    b.Property<string>("Name");
 
                     b.Property<string>("Path");
 

@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace MomoViewer.Migrations
 {
-    public partial class MyFirstMigration : Migration
+    public partial class SQLiteMigration : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -14,6 +14,7 @@ namespace MomoViewer.Migrations
                 {
                     LinkInfoId = table.Column<int>(nullable: false)
                         .Annotation("Autoincrement", true),
+                    Name = table.Column<string>(nullable: true),
                     Path = table.Column<string>(nullable: true),
                     Type = table.Column<int>(nullable: false)
                 },

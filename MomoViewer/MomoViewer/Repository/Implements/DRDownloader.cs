@@ -20,15 +20,19 @@ namespace MomoViewer.Repository.Implements
 
         private DownloadOperation _downloadOperation;
         private BackgroundDownloader _backgroundDownloader;
-
+        public static string CleanFileName(string fileName)
+        {
+            return Path.GetInvalidFileNameChars().Aggregate(fileName, (current, c) => current.Replace(c.ToString(), string.Empty));
+        }
         public async Task<StorageFile> Download(string uri)
         {
-            Uri source = new Uri(uri);
+            Uri source = new Uri(uri + @"/download");
             HttpClient client = new HttpClient();
             var result = await client.GetAsync(source, HttpCompletionOption.ResponseHeadersRead);
             var content = result.Content;
             var header = content.Headers;
-            string fileName = header.ContentDisposition.FileName;
+            //Clean invalid chars in filename
+            string fileName =CleanFileName( header.ContentDisposition.FileName);
             StorageFolder d = await StorageFolder.GetFolderFromPathAsync(ApplicationData.Current.LocalCacheFolder.Path);
             StorageFile file = await d.CreateFileAsync(fileName, CreationCollisionOption.OpenIfExists);
             var size = await file.GetBasicPropertiesAsync();

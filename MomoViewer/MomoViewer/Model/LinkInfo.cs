@@ -12,6 +12,8 @@ namespace MomoViewer.Model
         string _path;
         private LinkType _type;
 
+        public string _name;
+
         public string Path
         {
             get { return _path; }
@@ -22,6 +24,20 @@ namespace MomoViewer.Model
         {
             get { return _type; }
             set { _type = value; }
+        }
+
+        public string Name
+        {
+            get
+            {
+                _name = System.IO.Path.GetFileNameWithoutExtension(_path);
+                if (string.IsNullOrEmpty(_name))
+                {
+                    _name = System.IO.Path.GetDirectoryName(_path);
+                }
+                return _name;
+            }
+            set { _name = value; }
         }
     }
 

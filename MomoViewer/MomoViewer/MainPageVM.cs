@@ -31,7 +31,9 @@ namespace MomoViewer
         private ICommand _openFolderCommand;
         private ICommand _openLinkCommand;
         private ICommand _openRecentCommand;
+        private ICommand _clearHistoryCommand;
         private LinkInfo _info;
+        private string _currentChapterName;
         private ChapterVM _chapterVm;
         private int _totalPage;
         private FrameworkElement _view;
@@ -97,6 +99,7 @@ namespace MomoViewer
             get { return _chapterVm.TotalPages; }
             set { _chapterVm.TotalPages = value; }
         }
+
         public int SelectedIndex { get; set; }
 
         public ICommand OpenRecentCommand
@@ -118,7 +121,27 @@ namespace MomoViewer
         public ObservableCollection<LinkInfo> RecentList
         {
             get { return _recentList; }
-            set { _recentList = value; }
+            set
+            {
+                _recentList = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        public ICommand ClearHistoryCommand
+        {
+            get { return _clearHistoryCommand; }
+            set { _clearHistoryCommand = value; }
+        }
+
+        public string CurrentChapterName
+        {
+            get { return _currentChapterName; }
+            set
+            {
+                _currentChapterName = value; 
+                RaisePropertyChanged();
+            }
         }
 
         public MainPageVM(IDataAccess dataAccess, ChapterVM chapterVm)
@@ -127,6 +150,7 @@ namespace MomoViewer
             OpenFolderCommand = new RelayCommand(ExecuteOpenFolder);
             OpenLinkCommand = new RelayCommand(ExecuteOpenLinkCommand);
             OpenRecentCommand = new RelayCommand(ExecuteOpenRecentCommand);
+            ClearHistoryCommand = new RelayCommand(ExecuteClearHistory);
 
 
 
@@ -134,12 +158,15 @@ namespace MomoViewer
 
             _chapterVm = chapterVm;
             _dataAccess = dataAccess;
+            RecentList = new ObservableCollection<LinkInfo>(_dataAccess.GetAll());
 
-            using (var db = new DatabaseContext())
-            {
-                RecentList = new ObservableCollection<LinkInfo>(db.Links.ToList());
-            }
 
+        }
+
+        private void ExecuteClearHistory()
+        {
+            _dataAccess.RemoveRecent();
+            RecentList = new ObservableCollection<LinkInfo>();
         }
 
         private void ExecuteOpenRecentCommand()
@@ -161,15 +188,19 @@ namespace MomoViewer
                     _info.Path = dialog.Link;
                     _info.Type = LinkType.Online;
                     ReadLinkInfo(_info);
+                    if (RecentList.All(p => p.Path != _info.Path))
+                    {
+                        _dataAccess.AddRecent(_info);
+                        RecentList.Add(_info);
+                    }
                     break;
                 case ContentDialogResult.Secondary:
                     break;
-                default:
-                    throw new ArgumentOutOfRangeException();
+
             }
 
-            _dataAccess.AddRecent(_info);
-            RecentList.Add(_info);
+
+
 
 
         }
@@ -178,6 +209,7 @@ namespace MomoViewer
         {
             Images = new ObservableCollection<BitmapImage>(await ChapterVm.GetBitmapImages(info));
             View = ViewManager.GetView(ViewType.ReadingView, this);
+            CurrentChapterName = Info.Name + string.Format(" ({0})", Images.Count);
         }
 
         private async void ExecuteOpenFolder()
@@ -186,6 +218,7 @@ namespace MomoViewer
             picker.FileTypeFilter.Add(".zip");
             var folder = await picker.PickSingleFolderAsync();
             ReadLocation(folder);
+
         }
 
         private async void ExecuteOpenFile()
@@ -196,7 +229,7 @@ namespace MomoViewer
             ReadLocation(file);
         }
 
-        private async void ReadLocation(IStorageItem item)
+        private void ReadLocation(IStorageItem item)
         {
             if (item == null)
             {
@@ -214,8 +247,14 @@ namespace MomoViewer
                 _info.Type = LinkType.OfflineFolder;
             }
             ReadLinkInfo(_info);
-            _dataAccess.AddRecent(_info);
-            RecentList.Add(_info);
+            if (RecentList.All(p => p.Path != _info.Path))
+            {
+                _dataAccess.AddRecent(_info);
+                RecentList.Add(_info);
+            }
+
+          
+
         }
     }
 }

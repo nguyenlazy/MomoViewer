@@ -10,5 +10,7 @@ namespace MomoViewer.Repository.DataAcess
     public interface IDataAccess
     {
         void AddRecent(LinkInfo info);
+        void RemoveRecent();
+        IEnumerable<LinkInfo> GetAll();
     }
 }

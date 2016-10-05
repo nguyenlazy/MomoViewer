@@ -32,7 +32,7 @@ namespace MomoViewer
 
         private void HamburgerButton_Click(object sender, RoutedEventArgs e)
         {
-            MySplitView.IsPaneOpen = !MySplitView.IsPaneOpen;
+            //MySplitView.IsPaneOpen = !MySplitView.IsPaneOpen;
         }
 
         private void ListViewBase_OnItemClick(object sender, ItemClickEventArgs e)

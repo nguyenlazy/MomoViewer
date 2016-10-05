@@ -8,18 +8,69 @@
     d:DesignWidth="800"
     d:DesignHeight="800"
     mc:Ignorable="d">
+    <Page.BottomAppBar>
+        <CommandBar Content="{Binding CurrentChapterName}" VerticalAlignment="Center" VerticalContentAlignment="Center">
+            <CommandBar.SecondaryCommands>
+                <AppBarButton Command="{Binding ClearHistoryCommand}" Label="Clear History" >
+                </AppBarButton>
+            </CommandBar.SecondaryCommands>
+            <AppBarSeparator/>
+            
+            <!--Open File button-->
+            <AppBarButton Command="{Binding OpenFileCommand}" Label="Open File" >
+                <AppBarButton.Icon>
+                    <SymbolIcon Symbol="OpenFile"></SymbolIcon>
+                </AppBarButton.Icon>
+            </AppBarButton>
+            <!--Open folder button-->
+            <AppBarButton Command="{Binding OpenFolderCommand}" Label="Open Folder">
+                <AppBarButton.Icon>
+                    <SymbolIcon Symbol="OpenLocal"></SymbolIcon>
+                </AppBarButton.Icon>
+            </AppBarButton>
+            <!--open link button-->
+            <AppBarButton Command="{Binding OpenLinkCommand}" Label="Open Link">
+                <AppBarButton.Icon>
+                    <SymbolIcon Symbol="Link"></SymbolIcon>
+                </AppBarButton.Icon>
+            </AppBarButton>
+            <AppBarSeparator/>
+            <AppBarButton Label="Recent List">
+                <AppBarButton.Icon>
+                    <SymbolIcon Symbol="List"></SymbolIcon>
+                </AppBarButton.Icon>
+                <Button.Flyout>
+                    <Flyout>
+                        <Flyout.Placement>Right</Flyout.Placement>
+                        <FlyoutPresenter>
+                            <ListView ItemsSource="{Binding RecentList}" IsItemClickEnabled="True" ItemClick="ListViewBase_OnItemClick">
+                                <ListViewHeaderItem Content="Recent Reading"></ListViewHeaderItem>
+                                <ListView.ItemTemplate>
+                                    <DataTemplate >
+                                        <TextBlock Text="{Binding Path=Name}"></TextBlock>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </FlyoutPresenter>
+                    </Flyout>
+                </Button.Flyout>
+            </AppBarButton>
+        </CommandBar>
+    </Page.BottomAppBar>
 
-    <SplitView x:Name="MySplitView" CompactPaneLength="50" OpenPaneLength="250" DisplayMode="CompactOverlay">
+    <!--<SplitView x:Name="MySplitView" CompactPaneLength="50" OpenPaneLength="250" DisplayMode="CompactOverlay">
         <SplitView.Pane>
             <StackPanel Grid.Column="0" Background="Black">
-                <!--Expadnd button-->
+                --><!--Expadnd button--><!--
                 <Button x:Name="HamburgerButton" FontFamily="Segoe MDL2 Assets"
                     Width="50" Height="50" Background="Transparent" Click="HamburgerButton_Click">
                     <StackPanel>
                         <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE700;" FontSize="35"></TextBlock>
                     </StackPanel>
                 </Button>
-                <!--Open File button-->
+
+
+                --><!--Open File button--><!--
                 <Button Command="{Binding OpenFileCommand}" VerticalAlignment="Top" Background="Transparent">
                     <StackPanel Orientation="Horizontal" Width="150">
                         <TextBlock  Text="&#xE8A5;" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Left" Width="35" Height="35" FontSize="25" VerticalAlignment="Center">
@@ -27,14 +78,14 @@
                         <TextBlock FontFamily="Segoe UI" Text="Zip" Margin="10,0,0,0" FontSize="20" VerticalAlignment="Center"></TextBlock>
                     </StackPanel>
                 </Button>
-                <!--Open folder button-->
+                --><!--Open folder button--><!--
                 <Button Command="{Binding OpenFolderCommand}" VerticalAlignment="Top" Background="Transparent">
                     <StackPanel Orientation="Horizontal " Width="150">
                         <TextBlock  Text="&#xE8B7;" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Left" Width="35" Height="35" FontSize="25" VerticalAlignment="Center"></TextBlock>
                         <TextBlock FontFamily="Segoe UI" Text="Folder" Margin="10,0,0,0" FontSize="20" VerticalAlignment="Center"></TextBlock>
                     </StackPanel>
                 </Button>
-                <!--open link button-->
+                --><!--open link button--><!--
                 <Button Command="{Binding OpenLinkCommand}" VerticalAlignment="Top" Background="Transparent">
                     <StackPanel Orientation="Horizontal " Width="150">
                         <TextBlock  Text="&#xE896;" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Left" Width="35" Height="35" FontSize="25" VerticalAlignment="Center"></TextBlock>
@@ -71,7 +122,9 @@
         </SplitView.Content>
 
 
-    </SplitView>
-
+    </SplitView>-->
+    <GridView>
+        <ContentPresenter Content="{Binding View}"></ContentPresenter>
+    </GridView>
 </Page>
 

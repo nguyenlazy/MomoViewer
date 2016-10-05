@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,6 +17,26 @@ namespace MomoViewer.Repository.DataAcess
                 db.Links.Add(link);
                 db.SaveChanges();
             }
+        }
+
+        public void RemoveRecent()
+        {
+            using (var db = new DatabaseContext())
+            {
+                db.Links.RemoveRange(db.Links);
+                db.SaveChanges();
+            }
+        }
+
+        public IEnumerable<LinkInfo> GetAll()
+        {
+
+            IEnumerable<LinkInfo> result = new List<LinkInfo>();
+            using (var db = new DatabaseContext())
+            {
+                result = db.Links.ToList();
+            }
+            return result;
         }
     }
 }

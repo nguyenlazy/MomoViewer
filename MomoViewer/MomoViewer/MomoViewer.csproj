@@ -110,9 +110,9 @@
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="MainPageVM.cs" />
-    <Compile Include="Migrations\20160911152710_MyFirstMigration.cs" />
-    <Compile Include="Migrations\20160911152710_MyFirstMigration.designer.cs">
-      <DependentUpon>20160911152710_MyFirstMigration.cs</DependentUpon>
+    <Compile Include="Migrations\20161005164107_SQLiteMigration.cs" />
+    <Compile Include="Migrations\20161005164107_SQLiteMigration.designer.cs">
+      <DependentUpon>20161005164107_SQLiteMigration.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\DatabaseContextModelSnapshot.cs" />
     <Compile Include="Model\ChapterInfo.cs" />
